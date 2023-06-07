@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>sharepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"/>
+    <link href="../static/bootstrap-4.6.2-dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="../static/mycss/login.css" rel="stylesheet">
+    <link href="../static/mycss/homepage.css" rel="stylesheet">
+    <link href="../static/mycss/select.css" rel="stylesheet">
+    <link href="../static/mycss/logo.css" rel="stylesheet">
+    <style>
+        .clearfix {
+            clear: both;
+        }
+
+        .btn {
+            margin: 5px;
+        }
+
+        .table {
+            text-align: center;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+        }
+
+        .orbit {
+            stroke-dashoffset: 121;
+        }
+    </style>
+</head>
+
+<body>
+    {% if message %}
+    <div class="alert alert-danger fixed-top align-content-center fade-in text-center" role="alert">
+        <script>
+            setTimeout(function () {
+                document.querySelector('.alert').classList.remove('fade-in');
+                document.querySelector('.alert').classList.add('fade-out');
+            }, 2000);
+        </script>
+        {{ message }}
+    </div>
+    {% endif %}
+    <div style="margin: 0; padding: 0; width: 100%; height: 100%">
+        <!-- 左侧导航栏 -->
+        <nav class="navbar">
+            <ul class="navbar__menu">
+                <li class="navbar__item">
+                    <a href="#" class="navbar__link">
+                        <svg class="sat-loader" viewBox="0 0 100 100">
+                            <circle class="sat sat-back"></circle>
+                            <circle class="earth"></circle>
+                            <ellipse class="orbit"></ellipse>
+                            <circle class="sat sat-front"></circle>
+                        </svg>
+                        <span class="navbar__name">
+                            {{ username }}
+                        </span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <!-- a标签使用 url_for 的同时，传递 username 这个参数 -->
+                    <a href="{{ url_for('homepage', username=username) }}" class="navbar__link">
+                        <i data-feather="home"></i><span>主页</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('sourcepage', username=username) }}" class="navbar__link">
+                        <i data-feather="folder"></i><span>文档库</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('sharepage', username=username) }}" class="navbar__link">
+                        <i data-feather="users"></i><span>分享</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('help', username=username) }}" class="navbar__link">
+                        <i data-feather="help-circle"></i>
+                        <span>帮助</span></a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('setting', username=username) }}" class="navbar__link">
+                        <i data-feather="settings"></i>
+                        <span>设置</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('start')}}" class="navbar__link">
+                        <i data-feather="log-out"></i>
+                        <span>退出</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 右侧内容 -->
+        <div class="clearfix" style="margin: 0 0 0 150px; width: 85%; height: 90%">
+            <div>
+                <h1>分享页</h1>
+            </div>
+            <div style="height: 48px">
+                <h2>{{ username }}, 你想分享什么</h2>
+            </div>
+            <div style="height: 540px; overflow-y: hidden;">
+                <table class="table table-bordered table-hover" style="margin: 20px 0 0 0;">
+                    <thead>
+                    <tr>
+                        <th scope="col">文件名</th>
+                        <th scope="col">分享</th>
+                        <th scope="col">分享者可写</th>
+                        <th scope="col">分享者</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for permission in permissions %}
+                        <tr id="tr{{ loop.index }}">
+                            <td id="doc{{ loop.index }}">
+                                {{ permission['docname'] }}
+                            </td>
+                            <!-- 一个勾选框, 用于决定是否分享 -->
+                            <td>
+                                <input type="checkbox" id="shareable{{ loop.index }}" value="{{ permission['shareable'] }}">
+                            </td>
+                            <!-- 一个勾选框, 用于决定是否可写 -->
+                            <td>
+                                <input type="checkbox" id="writable{{ loop.index }}" value="{{ permission['writable'] }}">
+                            </td>
+                            <!-- 一个下拉框, 支持多选, 内容是其他的用户 -->
+                            <td style="width: 400px; text-align: center; vertical-align: middle;" id="multd{{loop.index}}">
+                                <select multiple="multiple" id="multiselect{{ loop.index }}" data-placeholder="Add users">
+                                    {% for user in users %}
+                                        <option value="{{ user['username'] }}">
+                                            {{ user['username'] }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <script>
+                                    var sharee = "{{ permission['sharee'] }}";
+                                    var hasComma = /,/.test(sharee);
+                                    if (hasComma || sharee != "") {
+                                        var shareeList = sharee.split(",");
+                                        var selectElement = document.getElementById("multiselect{{ loop.index }}");
+                                        var options = selectElement.options;
+                                        
+                                        for (var i = 0; i < options.length; i++) {
+                                            if (shareeList.includes(options[i].value)) {
+                                                options[i].selected = true;
+                                            }
+                                        }
+                                    }
+                                </script>
+                            </td>
+                            <td style="width: 150px">
+                                <button type="button" class="btn btn-success" control-id="ControlID-2"
+                                        onclick="GetSelect()" id="submit{{ loop.index }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                        fill="currentColor"
+                                        class="bi bi-save"
+                                        viewBox="0 0 16 16">
+                                        <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/>
+                                    </svg>
+                                    保存
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+<script src="https://unpkg.com/feather-icons"></script>
+<script src="../static/myjs/homepage.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src='../static/myjs/select.js'></script>
+<script>
+        // 页面加载完毕后立即执行
+    window.onload = function () {
+        {% for permission in permissions %}
+            // console.log("{{ permission['sharee'] }}");
+            // 输出 permission 中的 所有参数
+            var check1 = document.getElementById('shareable' + {{ loop.index }});
+            var check2 = document.getElementById('writable' + {{ loop.index }});
+            if (check1.value == 1) {
+                check1.checked = true;
+            }
+            if (check2.value == 1) {
+                check2.checked = true;
+            }
+        {% endfor %}
+    };
+
+    function GetSelect() {
+        // 获取触发这个函数的 button
+        var btn = document.activeElement;
+        // 获取这个 button 的 id ，并且截取 id 的部分作为序号
+        var id = btn.id;
+        var index = id.substring(6);
+
+        // 根据这个 序号 获取 select
+        var select = document.getElementById("multiselect" + index);
+        console.log(select);
+
+        // 遍历 select 下的所有 option
+        for (var i = 0; i < select.options.length; i++) {
+            console.log(select.options[i].value);
+        }
+        // 获取 select 的父节点
+        var div = select.parentNode.parentNode;
+        console.log(div);
+        // 获取所有的 div 下的 a 标签
+        var a = div.getElementsByTagName("a");
+        console.log(a);
+        // 依次获取 a 标签下的 em 标签的文本, 并作为一个数组保存, 此时得到了所有选择的值
+        var arr = [];
+        for (var i = 0; i < a.length; i++) {
+            arr.push(a[i].getElementsByTagName("em")[0].innerText);
+        }
+        // 对 select 下的 option 中，如果 option 的 value 在 arr 中，则将 option 的 selected 设置为 true
+        for (var i = 0; i < select.options.length; i++) {
+            if (arr.indexOf(select.options[i].value) !== -1) {
+                select.options[i].selected = true;
+            }
+        }
+        // 判断 select 中的 option 是否被设置成了 selected
+        for (var i = 0; i < select.options.length; i++) {
+            console.log(select.options[i].selected);
+        }
+
+        var docname = document.getElementById("doc" + index).innerText;
+        var username = '{{ username }}';
+        var shareable = document.getElementById("shareable" + index).checked;
+        var writable = document.getElementById("writable" + index).checked;
+        // 构造一个表单
+        var form = document.createElement("form");
+        form.action = "/share";
+        form.method = "post";
+        // 构造一个 input 标签，用来保存 docname
+        var input1 = document.createElement("input");
+        input1.type = "text";
+        input1.name = "docname";
+        input1.value = docname;
+        // 构造一个 input 标签，用来保存 username
+        var input2 = document.createElement("input");
+        input2.type = "text";
+        input2.name = "username";
+        input2.value = username;
+        // 构造一个 input 标签，用来保存 shareable
+        var input3 = document.createElement("input");
+        input3.type = "text";
+        input3.name = "shareable";
+        input3.value = shareable;
+        // 构造一个 input 标签，用来保存 writable
+        var input4 = document.createElement("input");
+        input4.type = "text";
+        input4.name = "writable";
+        input4.value = writable;
+        // 构造一个 input 标签，用来保存 arr
+        var input5 = document.createElement("input");
+        input5.type = "text";
+        input5.name = "choose";
+        input5.value = arr;
+        // 将 input 标签添加到 form 中
+        form.appendChild(input1);
+        form.appendChild(input2);
+        form.appendChild(input3);
+        form.appendChild(input4);
+        form.appendChild(input5);
+        // 将 form 添加到 body 中
+        document.body.appendChild(form);
+        // 提交表单
+        form.submit();
+    }
+</script>
+<!-- 背景 -->
+<script src="../static/myjs/shapes.js"></script>
+<script src="../static/myjs/shapegenerator.js"></script>
+<script>
+    let element = document.body;
+    let colorList = [
+        "#a29bfe","#ffeaa7","#ff7675","#fd79a8","#ff7675","#55efc4","#636e72"
+    ];
+    let numberOfShapes = 4;
+    let mode = 2;
+    console.log("mode: " + mode);
+    let rotation = true;
+    generateShapes(element, colorList, numberOfShapes, mode, rotation);
+</script>
+</body>
+</html>

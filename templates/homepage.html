@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>homepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"/>
+    <link href="../static/bootstrap-4.6.2-dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="../static/mycss/login.css" rel="stylesheet"/>
+    <link href="../static/mycss/homepage.css" rel="stylesheet"/>
+    <link href="../static/mycss/logo.css" rel="stylesheet">
+    <style>
+        .clearfix {
+            clear: both;
+        }
+        .orbit {
+            stroke-dashoffset: 121;
+        }
+    </style>
+</head>
+
+<body>
+<div style="margin: 0; padding: 0; width: 100%; height: 100%">
+    <!-- 左侧导航栏 -->
+    <nav class="navbar">
+        <ul class="navbar__menu">
+            <li class="navbar__item">
+                <a href="#" class="navbar__link">
+                    <svg class="sat-loader" viewBox="0 0 100 100">
+                        <circle class="sat sat-back"></circle>
+                        <circle class="earth"></circle>
+                        <ellipse class="orbit"></ellipse>
+                        <circle class="sat sat-front"></circle>
+                    </svg>
+                    <span class="navbar__name">
+                        {{ username }}
+                    </span>
+                </a>
+            </li>
+
+            <li class="navbar__item">
+                <!-- a标签使用 url_for 的同时，传递 username 这个参数 -->
+                <a href="{{ url_for('homepage', username=username) }}" class="navbar__link">
+                    <i data-feather="home"></i><span>主页</span>
+                </a>
+            </li>
+            <li class="navbar__item">
+                <a href="{{ url_for('sourcepage', username=username) }}" class="navbar__link">
+                    <i data-feather="folder"></i><span>文档库</span>
+                </a>
+            </li>
+            <li class="navbar__item">
+                <a href="{{ url_for('sharepage', username=username) }}" class="navbar__link">
+                    <i data-feather="users"></i><span>分享</span>
+                </a>
+            </li>
+            <li class="navbar__item">
+                <a href="{{ url_for('help', username=username) }}" class="navbar__link">
+                    <i data-feather="help-circle"></i>
+                    <span>帮助</span></a>
+            </li>
+            <li class="navbar__item">
+                <a href="{{ url_for('setting', username=username) }}" class="navbar__link">
+                    <i data-feather="settings"></i>
+                    <span>设置</span>
+                </a>
+            </li>
+            <li class="navbar__item">
+                <a href="{{ url_for('start')}}" class="navbar__link">
+                    <i data-feather="log-out"></i>
+                    <span>退出</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 右侧内容 -->
+    <div class="clearfix" style="margin: 0 0 0 150px; width: 85%; height: 90%">
+        <div>
+            <h1>首页 - 一周文稿情况</h1>
+        </div>
+        <div>
+            <h2 id="changewords"></h2>
+        </div>
+        <div>
+            <canvas class="my-4 w-100" style="padding: 20px 0 0 0;" id="myChart" width="800" height="300"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script>window.jQuery || document.write('<script src="../assets/js/vendor/jquery.slim.min.js"><\/script>')</script>
+<script src="../static/bootstrap-4.6.2-dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/feather-icons"></script>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="../static/myjs/homepage.js"></script>
+<script>
+    // 获取现在是上午下午还是晚上
+    var now = new Date();
+    var hour = now.getHours();
+    var str = "";
+    if (hour < 6) {
+        str = "在凌晨, ";
+    } else if (hour < 9) {
+        str = "早上好, ";
+    } else if (hour < 12) {
+        str = "上午好, ";
+    } else if (hour < 14) {
+        str = "中午好, ";
+    } else if (hour < 17) {
+        str = "下午好, ";
+    } else if (hour < 19) {
+        str = "傍晚好, ";
+    } else if (hour < 22) {
+        str = "晚上好, ";
+    } else {
+        str = "深夜了, ";
+    }
+    words = ["现在去做些什么呢?", "我猜你有很多想法!", "想写点什么吗?", "想分享点什么吗?", "想做点什么呢?"];
+    var index = Math.floor((Math.random() * words.length));
+    str = str + '{{ username }}' + ", " +words[index];
+    document.getElementById("changewords").innerHTML = str;
+
+    (function () {
+        'use strict'
+    
+        feather.replace()
+    
+        // Graphs
+        var ctx = document.getElementById('myChart')
+        // eslint-disable-next-line no-unused-vars
+
+        // 创建一个日期对象
+        var currentDate = new Date();
+        // 计算七天前的日期
+        var sevenDaysAgo = new Date(currentDate);
+        sevenDaysAgo.setDate(currentDate.getDate() - 6); // 获取七天前是星期几
+        // 获取星期几的名称
+        var daysOfWeek = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        var labels = [];
+        var datasets = [];
+
+        // 将 {{size}} 转换为 json 格式
+        var size = JSON.parse('{{ size | tojson | safe}}');
+        for (var i = 0; i < 7; i++) {
+            var date = new Date(sevenDaysAgo);
+            date.setDate(sevenDaysAgo.getDate() + i);
+            var dayOfWeek = daysOfWeek[date.getDay()];
+            var dayOfData = size[date.getDay()-1];
+            if (date.getDay() == 0) {
+                dayOfData = size[6];
+            }
+            labels.push(dayOfWeek);
+            datasets.push(dayOfData);
+        }
+
+        // 创建图表对象，将标签数组传递给labels属性
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+            datasets: [{
+            data: datasets,
+            lineTension: 0,
+            backgroundColor: 'transparent',
+            borderColor: '#007bff',
+            borderWidth: 4,
+            pointBackgroundColor: '#007bff'
+            }]
+        },
+        options: {
+            scales: {
+            yAxes: [{
+                ticks: {
+                beginAtZero: true
+                }
+            }]
+            },
+            legend: {
+            display: false
+            }
+        }
+        })
+    })()
+</script>
+<!-- 背景 -->
+<script src="../static/myjs/shapes.js"></script>
+<script src="../static/myjs/shapegenerator.js"></script>
+<script>
+    let element = document.body;
+    let colorList = [
+        "#a29bfe","#ffeaa7","#ff7675","#fd79a8","#ff7675","#55efc4","#636e72"
+    ];
+    let numberOfShapes = 4;
+    let mode = 2;
+    console.log("mode: " + mode);
+    let rotation = true;
+    generateShapes(element, colorList, numberOfShapes, mode, rotation);
+</script>
+</body>
+</html>

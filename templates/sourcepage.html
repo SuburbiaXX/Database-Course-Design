@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>sourcepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"/>
+    <link href="../static/bootstrap-4.6.2-dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="../static/mycss/login.css" rel="stylesheet"/>
+    <link href="../static/mycss/homepage.css" rel="stylesheet"/>
+    <link href="../static/mycss/logo.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .clearfix {
+            clear: both;
+        }
+
+        .btn {
+            margin: 5px;
+        }
+        .table {
+            text-align: center;
+        }
+
+        .table td, .table th {
+            vertical-align: middle;
+        }
+
+        .orbit {
+            stroke-dashoffset: 121;
+        }
+    </style>
+</head>
+<body>
+    {% if message %}
+    <div class="alert alert-danger fixed-top align-content-center fade-in text-center" role="alert">
+        <script>
+            setTimeout(function () {
+                document.querySelector('.alert').classList.remove('fade-in');
+                document.querySelector('.alert').classList.add('fade-out');
+            }, 2000);
+        </script>
+        {{ message }}
+    </div>
+    {% endif %}
+    <div style="margin: 0; padding: 0; width: 100%; height: 100%">
+        <!-- 左侧导航栏 -->
+        <nav class="navbar">
+            <ul class="navbar__menu">
+                <li class="navbar__item">
+                    <a href="#" class="navbar__link">
+                        <svg class="sat-loader" viewBox="0 0 100 100">
+                            <circle class="sat sat-back"></circle>
+                            <circle class="earth"></circle>
+                            <ellipse class="orbit"></ellipse>
+                            <circle class="sat sat-front"></circle>
+                        </svg>
+                        <span class="navbar__name">
+                            {{ username }}
+                        </span>
+                    </a>
+                </li>
+
+                <li class="navbar__item">
+                    <!-- a标签使用 url_for 的同时，传递 username 这个参数 -->
+                    <a href="{{ url_for('homepage', username=username) }}" class="navbar__link">
+                        <i data-feather="home"></i><span>主页</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('sourcepage', username=username) }}" class="navbar__link">
+                        <i data-feather="folder"></i><span>文档库</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('sharepage', username=username) }}" class="navbar__link">
+                        <i data-feather="users"></i><span>分享</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('help', username=username) }}" class="navbar__link">
+                        <i data-feather="help-circle"></i>
+                        <span>帮助</span></a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('setting', username=username) }}" class="navbar__link">
+                        <i data-feather="settings"></i>
+                        <span>设置</span>
+                    </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="{{ url_for('start')}}" class="navbar__link">
+                        <i data-feather="log-out"></i>
+                        <span>退出</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 右侧内容 -->
+        <div class="clearfix" style="margin: 0 0 0 150px; width: 85%; height: 90%">
+            <div>
+                <h1>文档库</h1>
+            </div>
+            <div>
+                <!-- 添加实现新增按钮 -->
+                <button type="button" class="btn btn-primary" onclick="CreateNewPage()">
+                    <i data-feather="plus"></i>
+                    <span>新增</span>
+                </button>
+            </div>
+            <div style="height: 500px; overflow-y: auto;">
+                <table class="table table-bordered table-hover" style="margin: 20px 0 0 0;">
+                    <thead>
+                        <tr>
+                            <th scope="col">文件名</th>
+                            <th scope="col">创建时间</th>
+                            <th scope="col">修改时间</th>
+                            <th scope="col">所有者</th>
+                            <th scope="col">字数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                            <tr onclick="redirectToLink('{{ document['docname'] }}', '{{ document['username'] }}')">
+                                <td>{{ document['docname'] }}</td>
+                                <td>{{ document['createtime'] }}</td>
+                                <td>{{ document['updatetime'] }}</td>
+                                <td>{{ document['username'] }}</td>
+                                <td>{{ document['size'] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+<script src="https://unpkg.com/feather-icons"></script>
+<script src="../static/myjs/homepage.js"></script>
+<script>
+    function redirectToLink(filename, owner) {
+        var url = "{{ url_for('editpage', username=username) }}" + "&ownername="+ owner + "&docname=" + filename;
+        window.location.href = url;
+    }
+    function CreateNewPage() {
+        <!-- 弹出确认框, 并且要求输入文件名称 -->
+        var filename = prompt("请输入文件名称", "newfile");
+        if (filename === null || filename == "") {
+            return;
+        }
+        var url = "{{ url_for('editpage', username=username) }}" +"&NEW=1"+ "&docname=" + filename;
+        window.location.href = url;
+    }
+</script>
+<!-- 背景 -->
+<script src="../static/myjs/shapes.js"></script>
+<script src="../static/myjs/shapegenerator.js"></script>
+<script>
+    let element = document.body;
+    let colorList = [
+        "#a29bfe","#ffeaa7","#ff7675","#fd79a8","#ff7675","#55efc4","#636e72"
+    ];
+    let numberOfShapes = 4;
+    let mode = 2;
+    console.log("mode: " + mode);
+    let rotation = true;
+    generateShapes(element, colorList, numberOfShapes, mode, rotation);
+</script>
+</body>
+</html>

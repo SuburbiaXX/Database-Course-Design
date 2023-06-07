@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>login</title>
+    <link href="../static/bootstrap-4.6.2-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/mycss/login.css" rel="stylesheet">
+    <link href="../static/mycss/logo.css" rel="stylesheet">
+</head>
+<body class="text-center">
+    {% if message %}
+    <div class="alert alert-danger fixed-top fade-in" role="alert">
+        <script>
+            setTimeout(function () {
+                document.querySelector('.alert').classList.remove('fade-in');
+                document.querySelector('.alert').classList.add('fade-out');
+            }, 2000);
+        </script>
+        {{ message }}
+    </div>
+    {% endif %}
+    <!-- 构造一个提交的表单 -->
+    <form action="{{ url_for('login') }}" method="post" class="form-signin">
+        <svg class="sat-loader" viewBox="0 0 100 100">
+            <circle class="sat sat-back"></circle>
+            <circle class="earth"></circle>
+            <ellipse class="orbit"></ellipse>
+            <circle class="sat sat-front"></circle>
+        </svg>
+        <label for="username" class="sr-only">username</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="username" required autofocus>
+        <label for="password" class="sr-only">password</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="password" required>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">登陆/注册</button>
+        <p class="mt-5 mb-3 text-muted">Designed by SuburbiaXX 2023</p>
+    </form>
+    <script src="../static/myjs/shapes.js"></script>
+    <script src="../static/myjs/shapegenerator.js"></script>
+    <script>
+        let element = document.body;
+        let colorList = [
+            "#a29bfe","#ffeaa7","#ff7675","#fd79a8","#ff7675","#55efc4","#636e72"
+        ];
+        let numberOfShapes = 4;
+        let mode = 2;
+        console.log("mode: " + mode);
+        let rotation = true;
+        generateShapes(element, colorList, numberOfShapes, mode, rotation);
+    </script>
+</body>
+</html>
